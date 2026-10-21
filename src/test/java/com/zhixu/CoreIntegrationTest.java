@@ -379,6 +379,14 @@ class CoreIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT status FROM extraction_drafts WHERE id = ?", String.class,
                 Long.parseLong(draftId))).isEqualTo("confirmed");
 
+        mvc.perform(get("/messages/" + messageId).header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.linkedTaskId").value(taskId));
+        mvc.perform(get("/messages").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value(messageId))
+                .andExpect(jsonPath("$.data[0].linkedTaskId").value(taskId));
+
         mvc.perform(post("/extraction-drafts/" + draftId + "/confirm").header("Authorization", bearer(other))
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isNotFound());

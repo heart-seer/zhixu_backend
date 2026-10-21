@@ -33,6 +33,14 @@ import java.util.Map;
  */
 @Repository
 public class CoreMapper {
+    private static final String MESSAGE_COLUMNS =
+            "m.id, m.user_id, m.platform_id, p.code AS platform_code, m.external_message_id, "
+                    + "m.sender_name, m.title, m.preview, m.body, m.kind, m.status, m.received_at, m.read_at, m.created_at, "
+                    + "(SELECT c.task_id FROM extraction_confirmations c JOIN extraction_drafts d ON d.id = c.draft_id "
+                    + " WHERE d.message_id = m.id AND c.task_id IS NOT NULL ORDER BY c.id DESC LIMIT 1) AS linked_task_id, "
+                    + "(SELECT c.event_id FROM extraction_confirmations c JOIN extraction_drafts d ON d.id = c.draft_id "
+                    + " WHERE d.message_id = m.id AND c.event_id IS NOT NULL ORDER BY c.id DESC LIMIT 1) AS linked_event_id ";
+
     private final JdbcTemplate db;
 
     public CoreMapper(JdbcTemplate db) {
@@ -303,25 +311,22 @@ public class CoreMapper {
     }
 
     public Map<String, Object> messageRow(long userId, long messageId) {
-        return one("SELECT m.id, m.user_id, m.platform_id, p.code AS platform_code, m.external_message_id, "
-                        + "m.sender_name, m.title, m.preview, m.body, m.kind, m.status, m.received_at, m.read_at, "
-                        + "m.created_at FROM messages m JOIN source_platforms p ON p.id = m.platform_id "
+        return one("SELECT " + MESSAGE_COLUMNS
+                        + "FROM messages m JOIN source_platforms p ON p.id = m.platform_id "
                         + "WHERE m.id = ? AND m.user_id = ? AND m.deleted_at IS NULL",
                 messageId, userId);
     }
 
     public Map<String, Object> messageByIngest(long userId, byte[] ingestKey) {
-        return one("SELECT m.id, m.user_id, m.platform_id, p.code AS platform_code, m.external_message_id, "
-                        + "m.sender_name, m.title, m.preview, m.body, m.kind, m.status, m.received_at, m.read_at, "
-                        + "m.created_at FROM messages m JOIN source_platforms p ON p.id = m.platform_id "
+        return one("SELECT " + MESSAGE_COLUMNS
+                        + "FROM messages m JOIN source_platforms p ON p.id = m.platform_id "
                         + "WHERE m.user_id = ? AND m.ingest_key = ? AND m.deleted_at IS NULL",
                 userId, ingestKey);
     }
 
     public List<Map<String, Object>> messages(long userId, Instant before, int limit) {
-        StringBuilder sql = new StringBuilder("SELECT m.id, m.user_id, m.platform_id, p.code AS platform_code, "
-                + "m.external_message_id, m.sender_name, m.title, m.preview, m.body, m.kind, m.status, "
-                + "m.received_at, m.read_at, m.created_at FROM messages m "
+        StringBuilder sql = new StringBuilder("SELECT " + MESSAGE_COLUMNS
+                + "FROM messages m "
                 + "JOIN source_platforms p ON p.id = m.platform_id "
                 + "WHERE m.user_id = ? AND m.deleted_at IS NULL");
         List<Object> args = new ArrayList<Object>();
