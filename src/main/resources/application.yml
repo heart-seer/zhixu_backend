@@ -12,3 +12,11 @@ spring:
     password: ${ZHIXU_DB_PASSWORD:}
   mvc:
     throw-exception-if-no-handler-found: false
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    display-request-duration: true
