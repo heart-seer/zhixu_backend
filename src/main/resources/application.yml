@@ -1,0 +1,14 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/zhixu?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${ZHIXU_DB_USER:root}
+    password: ${ZHIXU_DB_PASSWORD:}
+  mvc:
+    throw-exception-if-no-handler-found: false
